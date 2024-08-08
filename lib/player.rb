@@ -10,8 +10,11 @@ class Player
   # include Human
   # include Computer
 
-  def initialize(conscious, role)
+  attr_reader :conscious, :role, :player_name
+
+  def initialize(conscious, role, player_name = 'Bob')
     @role = role
     @conscious = conscious
+    @player_name = player_name
   end
 end

@@ -3,8 +3,7 @@
 # JM, 08/07/2024
 class Computer < Player
   def initialize(role)
-    @role = role
-    super 'CPU', role
+    super 'CPU', role, "CPU0#{(0..9).to_a.sample}"
   end
 
   def create_code
