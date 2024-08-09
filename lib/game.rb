@@ -27,44 +27,49 @@ class Game
       creator: creator == 'Human' ? Human.new('Create') : Computer.new('Create'),
       guesser: guesser == 'Human' ? Human.new('Guess') : Computer.new('Guess')
     }
-
     @code = @players[:creator].send(:create_code)
+    @turn = 0
     puts "#{@players[:creator].player_name} has chosen a code, begin!"
-    print @code.to_s << "\n"
     legend
-    display
     game_loop
   end
 
   def game_loop
-    turns = 0
-    while turns < 12
+    display
+    while @turn < 12
+      @turn += 1
       guess = @players[:guesser].send(:guess_code)
       similar = similarities_of guess
       display(guess, similar[:red], similar[:white])
       return win(@players[:guesser]) if @code == guess
-
-      turns += 1
     end
     win(@players[:creator])
   end
 
   def display(guess = nil, red = 0, white = 0)
-    return print ' - - - - - | - - - - - '.bg('2F4F4F') if guess.nil?
+    display = ' - - - - - | - - - - - '.split('')
+    index = 1
+    return print("Turn \##{@turn} " << display.map { |item| item.bg('2F4F4F') }.join('')) if guess.nil?
 
-    display = ' '
     guess.each do |peg|
-      display << '● '.fg(COLORS[peg])
+      display[index] = '●'.fg(COLORS[peg])
+      index += 2
     end
-    return print (display << '| - - - - - ').bg('2F4F4F') if red.zero? && white.zero?
+    index += (2 + ((5 - guess.length) * 2)) # Leaves dashes for smaller guesses and skips the pipe.
 
-    display << '| '
-    red.times { display << '◉ '.fg('FF0000') }
-    (5 - red).times { display << '- ' } if white.zero?
-    white.times { display << '◉ '.fg('FFFFFF') }
-    (5 - red - white).times { display << '- ' } unless (5 - red - white).zero?
-    print display.bg('2F4F4F')
-    # print "\n" << @code.to_s << "\n"
+    display_corrects(display, index, red, white)
+    print("Turn \##{@turn} " << display.map { |item| item.bg('2F4F4F') }.join(''))
+  end
+
+  def display_corrects(display, index, red, white)
+    red.times do
+      display[index] = 'Δ'.fg('FF0000')
+      index += 2
+    end
+    white.times do
+      display[index] = 'Δ'.fg('FFFFFF')
+      index += 2
+    end
   end
 
   def legend
@@ -73,20 +78,11 @@ class Game
       display << '● '.fg(hex).bg('2F4F4F')
     end
     puts display.bg('2F4F4F') << "\n 1 2 3 4 5 6 7 8 "
-    # display = ''
-    # number = 0
-    # COLORS.each do |color_name, hex|
-    #   number += 1
-    #   set = (' ' << number << ' ').fg(:white).bg(hex)
-    #   set.fg(:black) if color_name == :white
-    #   display << set
-    # end
-    # puts display
   end
 
   private
 
-  attr_reader :code
+  attr_reader :code, :turn
 
   def similarities_of(guess)
     red = white = 0
@@ -112,6 +108,7 @@ class Game
   end
 
   def win(winner)
+    puts ''
     puts winner
   end
 end
