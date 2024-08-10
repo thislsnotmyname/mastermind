@@ -1,14 +1,13 @@
 require_relative 'player'
 require_relative 'player/human'
 require_relative 'player/computer'
-require 'rainbow/refinement'
-
-using Rainbow
+require_relative 'game/display'
 
 # This class controls the game loop and game logic.
-# ◉
-# JM, 08/07/2024
+#
+# JM, 08/09/2024
 class Game
+  include Display
   attr_reader :players
 
   COLORS = {
@@ -46,56 +45,34 @@ class Game
     win(@players[:creator])
   end
 
-  def display(guess = nil, red = 0, white = 0)
-    display = ' - - - - - | - - - - - '.split('')
-    index = 1
-    return print("Turn \##{@turn} " << display.map { |item| item.bg('2F4F4F') }.join('')) if guess.nil?
-
-    guess.each do |peg|
-      display[index] = '●'.fg(COLORS[peg])
-      index += 2
-    end
-    index += (2 + ((5 - guess.length) * 2)) # Leaves dashes for smaller guesses and skips the pipe.
-
-    display_corrects(display, index, red, white)
-    print("Turn \##{@turn} " << display.map { |item| item.bg('2F4F4F') }.join(''))
-  end
-
-  def display_corrects(display, index, red, white)
-    red.times do
-      display[index] = 'Δ'.fg('FF0000')
-      index += 2
-    end
-    white.times do
-      display[index] = 'Δ'.fg('FFFFFF')
-      index += 2
-    end
-  end
-
-  def legend
-    display = ' '
-    COLORS.each_value do |hex|
-      display << '● '.fg(hex).bg('2F4F4F')
-    end
-    puts display.bg('2F4F4F') << "\n 1 2 3 4 5 6 7 8 "
-  end
-
   private
 
   attr_reader :code, :turn
 
   def similarities_of(guess)
-    red = white = 0
     guess = guess.dup
     uncounted_pegs = @code.dup
+
+    red = check_reds(guess, uncounted_pegs)
+
+    white = check_whites(guess, uncounted_pegs)
+
+    { red: red, white: white }
+  end
+
+  def check_reds(guess, uncounted_pegs)
+    red = 0
     @code.each_with_index do |peg, idx|
       next unless peg == guess[idx]
 
       red += 1
       uncounted_pegs[idx] = guess[idx] = 'counted'
     end
-    return { red: red, white: white } if red == 5
+    red
+  end
 
+  def check_whites(guess, uncounted_pegs)
+    white = 0
     guess.each do |peg|
       next if peg == 'counted'
 
@@ -104,11 +81,6 @@ class Game
       white += 1
       uncounted_pegs[uncounted_pegs.index(peg)] = 'counted'
     end
-    { red: red, white: white }
-  end
-
-  def win(winner)
-    puts ''
-    puts winner
+    white
   end
 end
