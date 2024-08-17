@@ -2,13 +2,15 @@ require_relative 'player'
 require_relative 'player/human'
 require_relative 'player/computer'
 require_relative 'game/display'
+require_relative 'game/check'
 
-# This class controls the game loop and game logic.
+# JM, 08/17/2024
 #
-# JM, 08/09/2024
+# This class controls the game loop and game logic.
 class Game
   include Display
-  attr_reader :players
+  include Check
+  attr_reader :players, :turn, :winner
 
   COLORS = {
     red: '#FF0000',
@@ -16,29 +18,29 @@ class Game
     green: '#00FF00',
     yellow: '#FFFF00',
     blue: '#0000FF',
-    magenta: '#FF00FF',
-    white: '#FFFFFF',
-    black: '#000000'
-  }
+    white: '#FFFFFF'
+  }.freeze
 
   def initialize(creator, guesser)
     @players = {
       creator: creator == 'Human' ? Human.new('Create') : Computer.new('Create'),
       guesser: guesser == 'Human' ? Human.new('Guess') : Computer.new('Guess')
     }
+    legend
+    puts "#{@players[:creator].player_name}, please create a secret code:"
     @code = @players[:creator].send(:create_code)
     @turn = 0
-    puts "#{@players[:creator].player_name} has chosen a code, begin!"
-    legend
+    puts "#{@players[:creator].player_name} has chosen a code; #{@players[:guesser].player_name}, start guessing!"
     game_loop
   end
 
   def game_loop
-    display
     while @turn < 12
       @turn += 1
+      display
       guess = @players[:guesser].send(:guess_code)
-      similar = similarities_of guess
+      similar = similarities_of(guess, @code)
+      @players[:guesser].guess_log[@turn] = { guess: guess, similar: similar }
       display(guess, similar[:red], similar[:white])
       return win(@players[:guesser]) if @code == guess
     end
@@ -47,40 +49,5 @@ class Game
 
   private
 
-  attr_reader :code, :turn
-
-  def similarities_of(guess)
-    guess = guess.dup
-    uncounted_pegs = @code.dup
-
-    red = check_reds(guess, uncounted_pegs)
-
-    white = check_whites(guess, uncounted_pegs)
-
-    { red: red, white: white }
-  end
-
-  def check_reds(guess, uncounted_pegs)
-    red = 0
-    @code.each_with_index do |peg, idx|
-      next unless peg == guess[idx]
-
-      red += 1
-      uncounted_pegs[idx] = guess[idx] = 'counted'
-    end
-    red
-  end
-
-  def check_whites(guess, uncounted_pegs)
-    white = 0
-    guess.each do |peg|
-      next if peg == 'counted'
-
-      next unless uncounted_pegs.include? peg
-
-      white += 1
-      uncounted_pegs[uncounted_pegs.index(peg)] = 'counted'
-    end
-    white
-  end
+  attr_reader :code
 end
