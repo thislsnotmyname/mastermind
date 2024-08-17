@@ -1,18 +1,29 @@
 require_relative 'lib/game'
 
-# TODO:
-#
-# Three classes:
-# Player
-# Human extends Player
-# Computer extends Player
-#
-# Two modules:
-# Guess_Code mixin to Player
-# Set_Code mixin to Player
-#
-# JM, 08/07/2024
+# JM, 08/13/2024
 
-# players = %w[Human Human].shuffle
-game = Game.new('CPU', 'Human')
-# p game.players
+player_configurations = {
+  1 => %w[Human CPU],
+  2 => %w[CPU Human],
+  3 => %w[Human Human],
+  4 => %w[CPU CPU]
+}
+
+puts 'Mastermind'
+
+def game_mode
+  puts "Please choose an option (Codesetter vs. Codebreaker):\n"\
+  "1. Human vs. CPU\n"\
+  "2. CPU vs. Human\n"\
+  "3. Human vs. Human\n"\
+  '4. CPU vs. CPU'
+  mode = gets.chomp
+  game_mode unless (1..4).to_a.include? mode[0].to_i
+  mode.to_i
+end
+loop do
+  mode = player_configurations[game_mode]
+  Game.new(mode[0], mode[1])
+  puts 'Play again? [y/n]'
+  break unless gets.chomp.downcase == 'y'
+end

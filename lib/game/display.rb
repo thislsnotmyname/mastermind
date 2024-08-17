@@ -1,16 +1,15 @@
 require 'rainbow/refinement'
 
-# This module handles the display of the board and the legend of colors.
+# JM, 08/13/2024
 #
-# JM, 08/09/2024
+# This module handles the display of the board and the legend of colors.
+module Display
+  using Rainbow
 
-using Rainbow
-
-module Display # rubocop:disable Style/Documentation
   def display(guess = [], red = 0, white = 0)
-    display = ' - - - - - | - - - - - '.split('')
+    display = ' - - - - | - - - - '.split('')
     index = 1
-    skip_to_corrects = 2 + ((5 - guess.length) * 2) # Leaves dashes for smaller guesses and skips the pipe.
+    skip_to_corrects = 2 + ((4 - guess.length) * 2) # Leaves dashes for smaller guesses and skips the pipe.
 
     guess.each do |peg|
       display[index] = '●'.fg(Game::COLORS[peg])
@@ -19,7 +18,7 @@ module Display # rubocop:disable Style/Documentation
     index += skip_to_corrects
 
     display_corrects(display, index, red, white)
-    print "Turn \##{turn_number} " << display_with_background(display)
+    print overwrite_blank_board_with_guess(guess, "Turn \##{turn_number} " << display_with_background(display))
   end
 
   def legend
@@ -27,10 +26,18 @@ module Display # rubocop:disable Style/Documentation
     Game::COLORS.each_value do |hex|
       display << '● '.fg(hex).bg('2F4F4F')
     end
-    puts "\nLegend: \n" << display.bg('2F4F4F') << "\n 1 2 3 4 5 6 7 8 \n\n"
+    puts "\nLegend: \n" << display.bg('2F4F4F') << "\n 1 2 3 4 5 6 \n\n"
   end
 
   private
+
+  def overwrite_blank_board_with_guess(guess, text)
+    if guess == []
+      print text
+    else
+      print "\r\e[1A#{text}\r\e[1B"
+    end
+  end
 
   def display_with_background(display)
     display.map { |item| item.bg('2F4F4F') }.join('')
@@ -54,5 +61,6 @@ module Display # rubocop:disable Style/Documentation
   def win(winner)
     puts ''
     puts "Game over! #{winner} wins!"
+    @winner = winner
   end
 end
