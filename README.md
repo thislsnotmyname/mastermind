@@ -9,6 +9,6 @@ When playing as the codebreaker, the computer utilizes the Swaszek (1999-2000) m
 
 This project took me nearly two weeks, with most of it spent on wrapping my head around how to implement other computer guessing algorithms, and ultimately how to implement the Swaszek method. (Big thanks to @devsaint on The Odin Project's discord for a walkthrough on the logic behind Swaszek's method!)
 
-This project was made as an exercise for [The Odin Project](https://www.theodinproject.com/lessons/ruby-mastermind)
+This project was made as an exercise for [The Odin Project](https://www.theodinproject.com/lessons/ruby-mastermind).
 
 > JM
